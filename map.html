@@ -1,0 +1,2787 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DLSZ Interactive Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-823W7XK4TZ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-823W7XK4TZ');
+  </script>
+
+  <!-- External Libraries -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Your Custom CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <!-- Gallery FAB -->
+  <div id="galleryFab" title="Gallery preview">
+    <img id="fabImg0" src="" alt="">
+    <img id="fabImg1" src="" alt="">
+    <div class="caption">Key areas</div>
+  </div>
+
+  <!-- Key People FAB -->
+  <div id="keyFab" title="Key people"> Br. Rafael Donato FSC
+  </div>
+
+<!-- Directions Panel -->
+<div id="guide-panel" aria-hidden="false">
+  <div id="guide-header">
+    <h4>DIRECTIONS</h4>
+    <button id="panelToggle" title="Minimize"></button>
+<button id="panelToggle" title="Toggle Panel">></button>
+
+  </div>
+
+  <!-- NEW: Wrap everything below header in this div -->
+  <div id="guide-content">
+    <!-- Target info -->
+    <div id="targetStatus" class="target-info" style="display:none;">
+      Target: <span id="targetName"></span>
+    </div>
+
+    <!-- Live distance/time updates -->
+    <div id="targetProgress" style="font-size:13px; color:#333; margin:4px 0;"></div>
+    
+<!-- Search section -->
+<div id="directionSearch" class="search-section">
+  <label for="fromSelect">From:</label>
+  <select id="fromSelect" class="direction-select"></select>
+
+  <label for="toSelect">To:</label>
+  <select id="toSelect" class="direction-select"></select>
+
+  <button id="getDirections" class="panel-btn" style="margin-top:8px;">🧭 Get Directions</button>
+</div>
+
+    <!-- Directions steps -->
+    <ol id="steps" style="margin:8px 0 0 0; padding-left:14px;"></ol>
+
+    <!-- Panel buttons -->
+    <div class="panel-actions" style="margin-top:10px;">
+      <button id="resetDirections" class="panel-btn">🔄 Reset</button>
+      <button id="toggleAudio" class="panel-btn">🔇 Audio: Off</button>
+    </div>
+
+    <div style="height:8px"></div>
+
+    <div class="panel-actions">
+      <button id="guideToggleBtn" class="panel-btn">Building Location Nearness</button>
+      <button id="clearTarget" class="panel-btn">🧭 Clear Target</button>
+    </div>
+  </div> <!-- end of guide-content -->
+</div>
+
+
+  <!-- Timeline FAB -->
+  <button id="timelineFab" title="Timeline">
+De La Salle Santiago Zobel Timeline
+  </button>
+
+  <!-- Timeline Modal -->
+  <div id="timelineModal" aria-hidden="true" role="dialog" aria-labelledby="timelineTitle" aria-modal="true">
+    <div id="timelineModalContent">
+      <h2 id="timelineTitle" style="text-align:center;">De La Salle Santiago Zobel Timeline</h2>
+      <div class="timeline-wrapper">
+        <button class="nav-btn prev-btn">&#8249;</button>
+        <div class="timeline-container" id="timeline">
+          <div class="timeline-item"><h3>1978</h3><p>De La Salle Santiago Zobel Established</p></div>
+          <div class="timeline-item"><h3>Late 1970s to Early 1980s</h3><p>Construction of St. La Salle Building</p></div>
+          <div class="timeline-item"><h3>Late 1980s</h3><p>Construction of St. Joseph Building</p></div>
+          <div class="timeline-item"><h3>Late 1980s</h3><p>Construction of Cadlum Hall & St. Leo Flavius Hall</p></div>
+          <div class="timeline-item"><h3>1980s to 1990s</h3><p>Construction of St. Mutien Marie Wiaux Building</p></div>
+          <div class="timeline-item"><h3>1996 to 2000</h3><p>Construction of Angelo King Center for Performing Arts</p></div>
+          <div class="timeline-item"><h3>June 14, 2000</h3><p>Dedication of Debbie Decena Auditorium</p></div>
+          <div class="timeline-item"><h3>November 2, 2006</h3><p>Death of Brother Rafael Donato FSC, Rise of Brother Rafael Donato FSC Night High School</p></div>
+          <div class="timeline-item"><h3>2007 to 2009</h3><p>Renovation into Brother Dennis Magbanua FSC Sports Pavilion</p></div>
+          <div class="timeline-item"><h3>2008</h3><p>Original Gym 1 Built later becoming Sports Pavilion</p></div>
+          <div class="timeline-item"><h3>2010</h3><p>Establishment of Brother Ceci Hojilla FSC Center for Lasallian Formation.</p></div>
+          <div class="timeline-item"><h3>September 19, 2024</h3><p>Inauguration of Julius K. Quiambao Football Field.</p></div>
+        </div>
+        <button class="nav-btn next-btn">&#8250;</button>
+      </div>
+    </div>
+    <button id="timelineModalClose" title="Close timeline">&times;</button>
+  </div>
+
+  <!-- Gallery Panel -->
+  <div id="galleryPanel">
+    <div class="gallery-title">Key Information</div>
+    <button class="carousel-nav" id="galleryPrev">◀</button>
+    <div class="carousel-viewport">
+      <div id="carouselViewport" class="carousel-track"></div>
+    </div>
+    <button class="carousel-nav" id="galleryNext">▶</button>
+  </div>
+
+  <!-- Info Modal -->
+  <div id="infoModal" aria-hidden="true">
+    <div class="modal-inner">
+      <div id="modalTitle"></div>
+      <div id="modalWrapper"><img id="modalImg" src="" alt=""></div>
+      <div id="modalInfo"></div>
+
+      <div class="tts-controls" id="ttsControls">
+        <button id="ttsToggle" title="Play / Pause"><i class="fa-solid fa-play"></i></button>
+        <div class="tts-rate">
+          <label for="ttsRate" style="color:#ddd;font-size:14px;">Speed</label>
+          <input id="ttsRate" type="range" min="0.6" max="1.8" step="0.1" value="1">
+        </div>
+      </div>
+    </div>
+
+    <button id="modalPrev" class="side-btn left">◀</button>
+    <button id="modalNext" class="side-btn right">▶</button>
+    <button id="closeModal" class="side-btn close">✕</button>
+  </div>
+
+  <div id="toast"></div>
+
+<style>
+:root {
+  --panel-w: 320px;
+  --gallery-h-desktop: 180px;
+  --gallery-h-mobile: 140px;
+  --base-gap: 16px;
+  --fab-size: 56px;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#map {
+  height: 100vh;
+  width: 100%;
+}
+
+/* Gallery FAB (bottom-left preview) */
+#galleryFab {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  width: 140px;
+  height: 84px;
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 1400;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+  background: #fff;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: bottom 260ms cubic-bezier(.2, .9, .3, 1),
+              transform 200ms ease,
+              opacity 240ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#galleryFab img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transition: opacity .8s ease;
+}
+
+#galleryFab img.active {
+  opacity: 1;
+}
+
+#galleryFab .caption {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  color: #222;
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  z-index: 1410;
+}
+
+/* Key people FAB */
+#keyFab {
+  position: fixed;
+  left: 16px;
+  bottom: 140px;
+  width: 150px;
+  height: 35px;
+  border-radius: 10px;
+  background: #1b5e20;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1420;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  transition: bottom 260ms cubic-bezier(.2, .9, .3, 1);
+}
+
+/* Timeline modal */
+#timelineModal {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease-in-out;
+  position: fixed;
+  z-index: 3000;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#timelineModal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+#timelineModalContent {
+  position: relative;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 90vh;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 32px 32px 32px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-wrapper {
+  flex-grow: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.timeline-container {
+  flex-grow: 1;
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 40px;
+  padding: 40px 0 20px 0;
+  scroll-behavior: smooth;
+  position: relative;
+  scrollbar-width: none;
+}
+
+.timeline-container::-webkit-scrollbar {
+  display: none;
+}
+
+.timeline-item {
+  flex: 0 0 260px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 40px 20px 20px 20px;
+  scroll-snap-align: center;
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.5s ease,
+              transform 0.6s cubic-bezier(.175, .885, .320, 1.275);
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-item.show {
+  opacity: 1;
+  transform: scale(1);
+}
+
+#timelineModalContent .nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  color: #2e7d32;
+  font-size: 28px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+}
+
+#timelineModalContent .prev-btn { left: 14px; }
+#timelineModalContent .next-btn { right: 14px; }
+
+#timelineModalClose {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(173, 255, 176, 0.12);
+  color: white;
+  border: none;
+  font-size: 28px;
+  z-index: 3600;
+}
+
+/* === GUIDE PANEL (HEADER ALWAYS VISIBLE, RIGHT SIDE) === */
+#guide-panel {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 280px;
+  background: transparent;
+  border-radius: 10px;
+  z-index: 1400;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER — always visible */
+#guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2e7d32;
+  color: white;
+  padding: 10px 12px;
+  border-radius: 10px 10px 10px 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  z-index: 2;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* === MINIMIZE ARROW BUTTON === */
+#panelToggle {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  line-height: 1;
+  margin-left: 8px;
+}
+
+#panelToggle:hover {
+  transform: scale(1.1);
+}
+
+/* Rotate arrow when panel is open (points down) */
+#guide-panel:not(.minimized) #panelToggle {
+  transform: rotate(90deg);
+}
+
+/* When minimized (arrow points right) */
+#guide-panel.minimized #panelToggle {
+  transform: rotate(0deg);
+}
+
+/* === CLEAN SLIDE UP/DOWN ANIMATION FOR WHITE PANEL === */
+#guide-content {
+  background: #fff;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  padding: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    transform 0.35s cubic-bezier(.25, .8, .25, 1),
+    opacity 0.3s ease,
+    max-height 0.35s ease;
+}
+
+/* When minimized — slides up smoothly under the header */
+#guide-panel.minimized #guide-content {
+  transform: translateY(-12px);
+  opacity: 0;
+  max-height: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+/* === PANEL BUTTONS (modern clean style) === */
+.search-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+  background: #fff;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.3s ease;
+}
+
+.search-section label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2f2f2f;
+  letter-spacing: 0.3px;
+}
+
+.direction-select {
+  padding: 8px 12px;
+  font-size: 13.5px;
+  border: 1.5px solid #d0d0d0;
+  border-radius: 8px;
+  background: #fafafa;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  outline: none;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%2343a047" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+
+.direction-select:hover {
+  border-color: #8bc34a;
+  background: #fff;
+}
+
+.direction-select:focus {
+  border-color: #43a047;
+  box-shadow: 0 0 0 3px rgba(67, 160, 71, 0.25);
+  background: #fff;
+}
+
+.direction-btn {
+  margin-top: 6px;
+  background: linear-gradient(135deg, #4caf50, #81c784);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  width: 100%;
+}
+
+.direction-btn:hover {
+  background: linear-gradient(135deg, #43a047, #66bb6a);
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* === UNIVERSAL BUTTON STYLE (base for all) === */
+.panel-btn,
+.direction-btn {
+  flex: 1;
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.25);
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+/* Hover + Active Effects */
+.panel-btn:hover,
+.direction-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(67, 160, 71, 0.35);
+  filter: brightness(1.05);
+}
+
+.panel-btn:active,
+.direction-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(67, 160, 71, 0.25);
+}
+
+/* === SPECIAL COLOR VARIANTS === */
+#resetDirections {
+  background: linear-gradient(135deg, #ef5350, #e53935);
+  box-shadow: 0 4px 10px rgba(239, 83, 80, 0.25);
+}
+
+#resetDirections:hover {
+  box-shadow: 0 6px 14px rgba(239, 83, 80, 0.35);
+  filter: brightness(1.05);
+}
+
+#toggleAudio {
+  background: linear-gradient(135deg, #1976d2, #42a5f5);
+  box-shadow: 0 4px 10px rgba(25, 118, 210, 0.25);
+}
+
+#toggleAudio:hover {
+  box-shadow: 0 6px 14px rgba(25, 118, 210, 0.35);
+  filter: brightness(1.05);
+}
+
+#guideToggleBtn {
+  background: linear-gradient(135deg, #43a047, #81c784);
+  box-shadow: 0 4px 10px rgba(67, 160, 71, 0.25);
+}
+
+#guideToggleBtn:hover {
+  box-shadow: 0 6px 14px rgba(67, 160, 71, 0.35);
+  filter: brightness(1.05);
+}
+
+#clearTarget {
+  background: linear-gradient(135deg, #9e9e9e, #bdbdbd);
+  box-shadow: 0 4px 10px rgba(158, 158, 158, 0.25);
+}
+
+#clearTarget:hover {
+  box-shadow: 0 6px 14px rgba(158, 158, 158, 0.35);
+  filter: brightness(1.08);
+}
+
+/* === LAYOUT GROUP FOR BUTTONS === */
+.panel-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+/* === TEXT INFO === */
+.target-info {
+  font-size: 13px;
+  color: #444;
+  margin-top: 6px;
+}
+
+/* Gallery Panel */
+#galleryPanel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -200%;
+  height: var(--gallery-h-desktop);
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 3px solid #2e7d32;
+  z-index: 1500;
+  padding: 14px 20px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: bottom 360ms cubic-bezier(.2, .9, .3, 1), opacity 320ms ease;
+  overflow: visible;
+  opacity: 0;
+}
+
+#galleryPanel.active {
+  bottom: 0;
+  opacity: 1;
+}
+
+.gallery-title {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  color: #2e7d32;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  z-index: 1510;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.carousel-viewport {
+  width: 100%;
+  max-width: 1100px;
+  overflow: visible;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+.carousel-card {
+  width: 240px;
+  height: 150px;
+  flex: 0 0 240px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  position: relative;
+  transition: transform 0.45s cubic-bezier(.2, .9, .3, 1), opacity 0.36s ease;
+  cursor: pointer;
+  background: #fff;
+}
+
+.carousel-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.carousel-card .label {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.carousel-card.side { transform: scale(0.94); opacity: 0.5; }
+.carousel-card.center { transform: scale(1.04); opacity: 1; }
+.carousel-card.anim-center-out { transform: translateX(-24px) scale(1); opacity: 0.5; }
+.carousel-card.anim-side-zoom { transform: scale(1.03); opacity: 0.95; }
+
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.95);
+  color: #2e7d32;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+  z-index: 1600;
+}
+
+#galleryPrev { left: 18px; }
+#galleryNext { right: 18px; }
+
+/* Info modal */
+#infoModal {
+  display: none;
+  opacity: 0;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.88);
+  z-index: 3000;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.28s ease;
+}
+
+#infoModal.show {
+  display: flex;
+  opacity: 1;
+}
+
+.modal-inner {
+  position: relative;
+  width: 92%;
+  max-width: 1000px;
+  text-align: center;
+  padding: 18px;
+}
+
+#modalWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+}
+
+#modalImg {
+  max-width: 92%;
+  max-height: 68vh;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  transition: transform 0.42s cubic-bezier(.2, .9, .3, 1), opacity 0.36s ease;
+}
+
+#modalTitle {
+  color: white;
+  font-size: 1.25rem;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+#modalInfo {
+  color: #ddd;
+  margin-top: 12px;
+  max-width: 90%;
+  text-align: center;
+  font-size: 15px;
+}
+
+.tts-controls {
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  color: #ddd;
+}
+
+.tts-controls button {
+  background: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  font-size: 14px;
+}
+
+.tts-controls input[type="range"] {
+  width: 140px;
+}
+
+.side-btn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(173, 255, 176, 0.12);
+  color: white;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  z-index: 3500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.side-btn.left { left: 14px; }
+.side-btn.right { right: 14px; }
+#closeModal {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(173, 255, 176, 0.12);
+  color: white;
+  border: none;
+  font-size: 28px;
+  z-index: 3600;
+}
+
+/* Popup slide + fade for marker popup wrapper */
+.leaflet-popup-content-wrapper {
+  transform: translateY(0px);
+  opacity: 1;
+  transition: transform 220ms ease, opacity 220ms ease;
+}
+
+.leaflet-popup-content-wrapper.pop-float {
+  transform: translateY(0px);
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 920px) {
+  :root { --panel-w: 280px; }
+  .carousel-card { width: 210px; height: 130px; }
+  #galleryFab { width: 120px; height: 76px; }
+}
+
+@media (max-width: 600px) {
+  :root { --panel-w: 240px; }
+  #galleryPanel { height: var(--gallery-h-mobile); }
+  #guide-panel { width: var(--panel-w); max-height: 50vh; }
+  #galleryFab { left: 12px; bottom: 12px; width: 110px; height: 72px; }
+  #keyFab { left: 12px; bottom: 100px; width: 50px; height: 50px; }
+  #guideFab { left: 12px; bottom: 150px; width: 50px; height: 50px; }
+  .carousel-card { width: 170px; height: 110px; }
+  .tts-controls input[type="range"] { width: 110px; }
+}
+
+/* Toast */
+#toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 22px;
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 10px;
+  display: none;
+  z-index: 4000;
+  font-size: 13px;
+}
+
+#toast.show {
+  display: block;
+  opacity: 1;
+}
+
+/* Timeline FAB */
+#timelineFab {
+  position: fixed;
+  left: 16px;
+  bottom: 200px;
+  width: 150px;
+  height: 35px;
+  border-radius: 10px;
+  background: #1b5e20;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1420;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  transition: bottom 260ms cubic-bezier(.2, .9, .3, 1);
+}
+
+.dot-marker {
+  background: #d33;
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
+}
+
+</style>
+  <!-- External Scripts -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+<script>
+      // ===== Map setup =====
+      const centerCoords = [14.4095, 121.0198];
+
+      const map = L.map('map', {
+        dragging: false,
+        zoomControl: true,
+        scrollWheelZoom: true,
+        doubleClickZoom: true,
+        boxZoom: true,
+        touchZoom: true
+      }).setView(centerCoords, 18);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+const buildingIcon = L.icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+const dotIcon = L.divIcon({
+  className: "custom-dot",
+  html: "<div style='width:10px; height:10px; background:red; border-radius:50%;'></div>",
+  iconSize: [10, 10],
+  iconAnchor: [5, 5]
+});
+
+      // User location marker
+      const userIcon = L.divIcon({
+        html: '󰣯',
+        className: '',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+      const userMarker = L.marker([0, 0], { icon: userIcon }).addTo(map);
+
+      map.locate({ setView: true, maxZoom: 19, watch: true });
+      map.on('locationfound', function (e) {
+        userMarker.setLatLng(e.latlng);
+      });
+
+      // Always re-center on zoom (but keep zoom level)
+      map.on("zoomend", () => {
+        map.setView(centerCoords, map.getZoom(), { animate: false });
+      });
+
+// ===== DATA =====
+const buildings = [
+  // main buildings
+  { name: "Sports Pavilion", coords:[14.4102708, 121.0194265], info: "Main basketball court (NBA-style hardwood, bleachers), two volleyball/futsal courts, stage and chess room perched beside stairs. Then, offices include Sports Development Office (SDO), PE Faculty, Coaches’ Lounge, and Parents’ Association. The basement accommodates the weights room (judo), table tennis room, dance studio, locker rooms, and showers. While its upper Level has an elevated half‑oval running track along the second floor perimeter." },
+  { name: "Julius K. Quiambao Football Field", coords:[14.4104647, 121.0201077], info: "A FIFA-certified turf field." },
+  { name: "St. Mutien Marie Administration Building", coords:[14.4097899, 121.0204980], info: "Floor 1 includes Instructional Performance and Assessment, Campus Services and Transportation, Safety and Security offices can be found. While President’s and Executive Vice President’s Offices, Human Resources, Don Enrique Zobel Board Room, etc. can be found on floor 2. The Annex (Lower Ground to Second floor) is where the bookstore, Student Publications, Lasallian Formation and Mission, Art Room, Audiovisual Room, Flex Hall, etc. are all located." },
+  { name: "St. La Salle Building", coords:[14.4093200, 121.0201930], info: "The lower ground includes the library, school archives, and Power Mac Center. First to third floors accommodate classrooms for Grades 5-12 with BRafeNHS, and offices such as the  Faculty room of teachers, Clinic, Science Labs, Robotics classrooms, DDA, SRCC Offices, Guidance council, etc." },
+  { name: "Cadlum Hall & St. Leo Flavius Hall", coords:[14.4096818, 121.0193090], info: "Halls for cafeteria and stalls." },
+  { name: "Angelo King Center for Performing Arts", coords:[14.4096396, 121.0196036], info: "The CPA houses the Sylvia P. Lina Theater." },
+  { name: "Br. Ceci Hojilla FSC Center for Lasallian Formation", coords:[14.4087662, 121.0209836], info: "Our Lady of the Star Chapel, mess hall, two session rooms, and family Life Wellness Institute Office is located under CLF. Next is Parmenie where Campus Ministry Office (CMO) and Social Action Office (SAO) are located  on the ground floor side-by-side at the left wing from the entrance. While the Pantry and Storage Room on the right wing. Other floors are allotted to dormitories for girls and boys." },
+  { name: "Our Lady of the Star Chapel", coords:[14.4086150, 121.0206765], info: "The chapel serves as the main spiritual hub for the school community." },
+  { name: "St. Joseph Building", coords:[14.410289252625368, 121.01894337355556], info: "STEM and IT facilities." },
+  { name: "Taekwondo Gym 3", coords:[14.410508, 121.018902], info: "A multi-use gym." },
+  { name: "School Fountain", coords:[14.409468, 121.019594], info: "The central campus landmark." },
+  { name: "Debbie Decena Auditorium", coords:[14.409014, 121.020375], info: "Auditorium for events and gatherings." },
+
+  // directional / marker nodes
+  { name: "Gate 1", coords: [14.408637, 121.020273], dot: true },
+  { name: "Gate 2", coords: [14.409328, 121.019498], dot: true },
+  { name: "Gate 3", coords: [14.409650, 121.020749], dot: true },
+  { name: "CPA Entrance", coords: [14.409520, 121.019663], dot: true },
+  { name: "Parking in front of St. La Salle Building", coords: [14.409114, 121.019903], dot: true },
+  { name: "St. La Salle Building Entrance Beside DLSZ Finance", coords: [14.409316, 121.020159], dot: true },
+  { name: "St. La Salle Building Entrance Near Gate 1", coords: [14.408743, 121.020310], dot: true },
+  { name: "St. La Salle Building Entrance Near CLF", coords: [14.408855, 121.020834], dot: true },
+  { name: "St. La Salle Building Entrance Near Gate 3", coords: [14.409457, 121.020680], dot: true },
+  { name: "St. Mutien Mariee Building Entrance", coords: [14.409627, 121.020416], dot: true },
+  { name: "Foodball Field Entrance near St. Mutien Building", coords: [14.409945, 121.020572], dot: true },
+  { name: "Covered Walk between CPA and St. Mutien", coords: [14.409548, 121.020128], dot: true },
+  { name: "Debbie Decena Entrance", coords: [14.408976, 121.020238], dot: true },
+  { name: "CLF Entrance", coords: [14.408745, 121.020852], dot: true },
+  { name: "Covered Walk at the back of Sports Pavilion", coords: [14.410069, 121.019875], dot: true },
+  { name: "Covered Walk between CPA and Sports Pavilion", coords: [14.409999557180322, 121.01964794353103], dot: true },
+  { name: "Parking in front of Sports Pavilion", coords: [14.410300, 121.019284], dot: true }
+];
+
+// ===== MAIN BUILDINGS ONLY =====
+const buildingsMain = buildings.slice(0, 15);
+
+// ===== POPULATE DIRECTION DROPDOWNS =====
+const fromSelect = document.getElementById("fromSelect");
+const toSelect = document.getElementById("toSelect");
+const getDirectionsBtn = document.getElementById("getDirections");
+
+// Add placeholders
+fromSelect.innerHTML = '<option value="">Select start location</option>';
+toSelect.innerHTML = '<option value="">Select destination</option>';
+
+// Populate dropdowns with only main buildings
+buildingsMain.forEach(b => {
+  const option1 = document.createElement("option");
+  option1.value = b.name;
+  option1.textContent = b.name;
+  fromSelect.appendChild(option1);
+
+  const option2 = document.createElement("option");
+  option2.value = b.name;
+  option2.textContent = b.name;
+  toSelect.appendChild(option2);
+});
+
+// ===== HANDLE "Get Directions" BUTTON =====
+getDirectionsBtn.addEventListener("click", () => {
+  const from = fromSelect.value;
+  const to = toSelect.value;
+
+  if (!from || !to) {
+    alert("Please select both start and destination.");
+    return;
+  }
+  if (from === to) {
+    alert("Start and destination cannot be the same.");
+    return;
+  }
+
+  // ✅ Directly call your actual route computation function
+  computeRoute(from, to);
+});
+
+      /* === Galleries === */
+const buildingGalleries = {
+  "School Fountain": [
+    {
+      src: "https://i.ibb.co/7hRwrFs/IMG-20250812-145646.jpg",
+      desc: "The iconic fountain at the heart of campus, often used as a landmark and meeting place."
+    },
+    {
+      src: "https://i.ibb.co/4RvKCLMX/IMG-20250812-145633.jpg",
+      desc: "Another view of the school fountain, showing the surrounding greenery and open space."
+    }
+  ],
+  
+  "Sports Pavilion": [
+    {
+      src: "https://i.ibb.co/23JN8tq1/pav-exterior.jpg",
+      desc: "Under the leadership of Bro. Dennis Magbanua FSC, where the school undertook a major transformation year 2007-2009. It reopened as the modern Sports Pavilion, blending the old structure with a bold new dome addition."
+    },
+    {
+      src: "https://i.ibb.co/KjJqPLPR/SAM-1009.jpg",
+      desc: "Used extensively for PE classes, varsity training, and facilities for various sports: basketball, volleyball, futsal, table tennis, judo, dance, and chess."
+    },
+    {
+      src: "https://i.ibb.co/ycMVDD3m/pav-interior.jpg",
+      desc: "The Pavilion reflects Lasallian pride, fostering sportsmanship and excellence among students. It also accommodates the entire grade school and high school populations during large gatherings."
+    }
+  ],
+
+  "Angelo King Center for Performing Arts": [
+    {
+      src: "https://i.ibb.co/TDzP6dVs/IMG-20250812-145543.jpg",
+      desc: "The Angelo King Center for Performing Arts at De La Salle Santiago Zobel (DLSZ) was constructed between 1996 and 2000 through the generous support of philanthropist Mr. Angelo King"
+    },
+    {
+      src: "https://i.ibb.co/XfTtMv2N/6451256-orig.jpg",
+      desc: "In 2004, the Cultural Center of the Philippines (CCP) officially recognized the CPA as its Southern Satellite Venue, giving it the nickname “CCP of the South”. The CPA continues to play a central role in arts education, cultural formation, and community performances, making it a true icon in the Lasallian educational mission."
+    }
+  ],
+
+  "Cadlum Hall & St. Leo Flavius Hall": [
+    {
+      src: "https://i.ibb.co/7JKWkRGK/IMG-20250812-145529.jpg",
+      desc: "Named after St. Leo the Great (Leo Flavius), a Doctor of the Church known for his wisdom, leadership, and theological contributions"
+    },
+    {
+      src: "https://i.ibb.co/Kxp9Y2s5/IMG-20250812-145411.jpg",
+      desc: "It is the place that are commemorated for the Lasallian martyrs who were massacred in World War 2 at DLSU on Taft Most Blessed Sacrament Chapel."
+    }
+  ],
+
+  "Julius K. Quiambao Football Field": [
+    {
+      src: "https://i.ibb.co/bj2smjwQ/IMG-20250812-144752.jpg",
+      desc: "The facility is renamed Julius Caesar Kindangen Quiambao Football Field in honor of Quiambao’s legacy."
+    },
+    {
+      src: "https://i.ibb.co/8g42CmZ9/IMG-20250812-144741.jpg",
+      desc: "Last October 2024, the field becomes the first FIFA Quality Certified pitch at a privately-run K–12 school in the Philippines. Upgrades included premium Limonta Duo Shape 50 mm artificial turf, enhanced drainage, leveled base, and long-term maintenance through E-Sports Intl. Inc."
+    },
+    {
+      src: "https://i.ibb.co/67xPD9LN/IMG-20250812-144616.jpg",
+      desc: "Serves as the main training and match venue for DLSZ's football teams (Junior/Senior Archers and Lady Junior Archers), intramurals, and other sports like ultimate frisbee."
+    },
+    {
+      src: "https://i.ibb.co/fdVvqTJ7/IMG-20250812-144553.jpg",
+      desc: "It also occasionally hosts tournaments open to external teams and even national squads."
+    }
+  ],
+
+  "St. Joseph Building": [
+    {
+      src: "https://i.ibb.co/bjd1yzCn/IMG-20250812-145219.jpg",
+      desc: "It was named to honor Saint Joseph, a patron of families and workers. This naming reflects the Lasallian educational philosophy, which emphasizes community, service, and faith as essential pillars of student formation."
+    },
+    {
+      src: "https://i.ibb.co/DHzMmCxx/IMG-20250812-145151.jpg",
+      desc: "It was constructed in the late 1980s, during a pivotal period of growth for De La Salle Santiago Zobel School (DLSZ). As one of the earliest permanent structures of DLSZ, it played a foundational role in establishing the school’s physical identity and its commitment to nurturing young learners in a safe and values-centered environment."
+    }
+  ],
+
+  "St. Mutien Marie Administration Building": [
+    {
+      src: "https://i.ibb.co/99wq1943/IMG-20250812-144302.jpg",
+      desc: "The building honors St. Mutien Marie Wiaux, a Belgian De La Salle Brother, who was canonized in 1989. Brother Mutien Marie was known for his humble services, discipline, and devotion to teaching students in the arts and religious formation."
+    },
+    {
+      src: "https://i.ibb.co/JwhM0scK/IMG-20250812-144457.jpg",
+      desc: "This building serves as the central hub for the campus's administrative operations."
+    }
+  ],
+
+"St. La Salle Building": [
+{
+src: "https://i.ibb.co/XH7D6N3/image.png",
+desc: "The St. La Salle Building is named after St. John Baptist de La Salle, born on April 30, 1651, the visionary founder of the Institute of the Brothers of the Christian Schools and the recognized Patron Saint of Educators. His legacy in education, particularly his dedication to forming Christian communities through teaching, is deeply reflected in the building’s name and purpose."
+},
+  {
+src: "https://i.ibb.co/HLMJz9Gt/IMG-3405.jpg",
+desc: "Moreover, it is established to have a more conducive and suitable learning environment, an extension of De La Salle University, the first De La Salle School in the Philippines found in Paco, Manila."
+},
+{
+src: "https://i.ibb.co/qYWD0fdb/IMG-3396.jpg",
+desc: "Year 1976, it is the first building that was established to accommodate both elementary and high school classrooms at the campus, it was constructed during the institution’s formative years. Additionally, before the family of Jacobo Santiago Zobel donated the lot at Ayala Alabang, the original name of DLSZ was De La Salle-South School. It is changed in gratitude to Enrique Zobel’s generosity, after his son died at the young age of 11."
+}
+],
+
+  "Br. Ceci Hojilla FSC Center for Lasallian Formation": [
+    {
+      src: "https://i.ibb.co/4ZPJCbGp/IMG-20250812-143911.jpg",
+      desc: "The Br. Ceci Hojilla FSC Center for Lasallian Formation (CLF), named after the brother who dedicated his life to guiding the youth, was established as a sacred space for deepening the Lasallian identity and strengthening spiritual growth at De La Salle Santiago Zobel (DLSZ). It embodies the school’s mission to raise Christian Achievers for God and Country through values rooted in Faith, Service, and Communion in Mission."
+    },
+    {
+      src: "https://i.ibb.co/jvzr9cKS/IMG-20250812-143953.jpg",
+      desc: "CLF was created as a dedicated venue to form students in the Lasallian tradition, centered on the 5Cs: Christian, Committed, Competent, Compassionate, and Confident. All these values are lived out through various Lasallian Formation activities hosted within this facility."
+    }
+  ],
+
+  "Debbie Decena Auditorium": [
+    {
+      src: "https://i.ibb.co/1J8TtmrG/IMG-20250812-143555.jpg",
+      desc: "This auditorium is dedicated to honor the memory of Deborah \"Debbie\" Decena, Gr. 4 - B student, who died in an accident within the school grounds on 20 November 1998 during the School's 18th Founding Week observance. Presented to the Decena Family on 14 June 2000."
+    },
+    {
+      src: "https://i.ibb.co/GLJ5HnF/IMG-20250812-143610.jpg",
+      desc: "Her contributions helped realize the vision of a dedicated space for performing arts, assemblies, and institutional gatherings."
+    },
+    {
+      src: "https://i.ibb.co/cc5zXjmV/IMG-20250812-143627.jpg",
+      desc: "Serves as the main auditorium of the DLSZ Alabang campus."
+    }
+  ],
+
+  "Our Lady of the Star Chapel": [
+    {
+      src: "https://i.ibb.co/J1BTFp0/OLS-Chapel.jpg",
+      desc: "The OLStar Chapel, located on the second floor of the Br. Ceci Hojilla FSC Center for Lasallian Formation (CLF), was purpose-built to provide students and staff with a faith, service, and communion within the school community"
+    }
+  ]
+};
+    const keyPeopleGallery = [ { name:"Brother Rafael Donato FSC", src:"https://i.ibb.co/v46N36LY/br-rafe-donato.jpg", desc:"On the year 1997, the school that's was established for underprivileged adults that is originally named as Adult Night High School. Later on, it expanded to include the younger generation which is now known as the Br. Rafael Donato FSC Night High School. Named after Br. Rafael Donato FSC, a Lasallian Brother, educator, scholar, and servant of God. He was born on October 12, 1937 and was laid to rest dated November 2, 2006." } ];
+
+
+
+// ================================
+// Building Entrances Mapping
+// ================================
+const buildingEntrances = {
+  "Sports Pavilion": "Parking in front of Sports Pavilion",
+  "Julius K. Quiambao Football Field": "Football Field Entrance near St. Mutien Building",
+  "St. Mutien Marie Administration Building": "St. Mutien Marie Building Entrance",
+  "St. La Salle Building": "St. La Salle Building Entrance Near Gate 1",
+  "Cadlum Hall & St. Leo Flavius Hall": "Gate 2",
+  "Angelo King Center for Performing Arts": "CPA Entrance",
+  "Br. Ceci Hojilla FSC Center for Lasallian Formation": "CLF Entrance",
+  "Our Lady of the Star Chapel": "CLF Entrance",
+  "St. Joseph Building": "Gate 2",
+  "Taekwondo Gym 3": "Gate 2",
+  "School Fountain": "Gate 2",
+  "Debbie Decena Auditorium": "Debbie Decena Entrance",
+  "Student Activity Center": "Debbie Decena Entrance",
+  "Security Office": "Gate 1",
+  "Main Entrance Gate": "Gate 1",
+  "Northwest Corner Pathway": "Gate 2",
+  "West Walkway / Service Exit": "Covered Walk at the back of Sports Pavilion",
+  "Intermediate Courtyard": "Debbie Decena Entrance",
+  "Flagpole Area / Quadrangle": "Parking in front of St. La Salle Building",
+  "South Exit Gate": "Gate 3",
+  "South Courtyard / Garden": "CPA Entrance",
+  "Maintenance Area / Utility Shed": "Service Gate (East Perimeter)",
+  "East Driveway Loop": "Gate 3",
+  "Parking Area (East Wing)": "Parking in front of St. La Salle Building",
+  "Service Gate (East Perimeter)": "Gate 3"
+};
+
+// ================================
+// Manual Routes (full, fixed)
+// ================================
+const manualRoutes = {
+  "St. La Salle Building→Debbie Decena Auditorium": [
+    "St. La Salle Building",
+    "Debbie Decena Auditorium"
+  ],
+  "Sports Pavilion→Julius K. Quiambao Football Field": [
+    "Sports Pavilion",
+    "Covered Walk at the back of Sports Pavilion",
+    "Julius K. Quiambao Football Field"
+  ],
+  "St. Joseph Building→Debbie Decena Auditorium": [
+    "St. Joseph Building",
+    "Parking in front of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and St. Mutien",
+    "St. La Salle Building Entrance Beside DLSZ Finance",
+    "St. La Salle Building",
+    "Debbie Decena Auditorium"
+  ],
+  "St. La Salle Building→School Fountain": [
+    "St. La Salle Building",
+    "St. La Salle Building Entrance Beside DLSZ Finance",
+    "CPA Entrance",
+    "School Fountain"
+  ],
+  "Gate 1→St. La Salle Building": [
+    "Gate 1",
+    "St. La Salle Building Entrance Near Gate 1",
+    "St. La Salle Building"
+  ],
+  "Gate 1→Br. Ceci Hojilla FSC Center for Lasallian Formation": [
+    "Gate 1",
+    "St. La Salle Building Entrance Near Gate 1",
+    "St. La Salle Building Entrance Near CLF",
+    "CLF Entrance",
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation"
+  ],
+  "Gate 1→Debbie Decena Auditorium": [
+    "Gate 1",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Debbie Decena Auditorium"
+  ],
+  "Gate 1→Taekwondo Gym 3": [
+    "Gate 1",
+    "Parking in front of St. La Salle Building",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "St. Joseph Building",
+    "Taekwondo Gym 3"
+  ],
+  "Gate 1→St. Mutien Marie Administration Building": [
+    "Gate 1",
+    "Covered Walk between CPA and St. Mutien",
+    "St. Mutien Marie Building Entrance",
+    "St. Mutien Marie Administration Building"
+  ],
+  "Gate 1→Julius K. Quiambao Football Field": [
+    "Gate 1",
+    "Covered Walk between CPA and St. Mutien",
+    "Covered Walk at the back of Sports Pavilion",
+    "Julius K. Quiambao Football Field"
+  ],
+  "Gate 1→Angelo King Center for Performing Arts": [
+    "Gate 1",
+    "Parking in front of St. La Salle Building",
+    "School Fountain",
+    "CPA Entrance",
+    "Angelo King Center for Performing Arts"
+  ],
+  "Gate 1→Cadlum Hall & St. Leo Flavius Hall": [
+    "Gate 1",
+    "Parking in front of St. La Salle Building",
+    "School Fountain",
+    "Cadlum Hall & St. Leo Flavius Hall"
+  ],
+  "Gate 1→St. Joseph Building": [
+    "Gate 1",
+    "Parking in front of St. La Salle Building",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "St. Joseph Building"
+  ],
+  "Gate 1→Taekwondo Gym": [
+    "Gate 1",
+    "Parking in front of St. La Salle Building",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "Taekwondo Gym"
+  ],
+  "Gate 2→St. La Salle Building": [
+    "Gate 2",
+    "St. La Salle Building Entrance Beside DLSZ Finance",
+    "St. La Salle Building"
+  ],
+  "Gate 2→Our Lady of the Star Chapel": [
+    "Parking in front of St. La Salle Building",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Our Lady of the Star Chapel"
+  ],
+  "Gate 2→Br. Ceci Hojilla FSC Center for Lasallian Formation": [
+    "Gate 2",
+    "Parking in front of St. La Salle Building",
+    "St. La Salle Building Entrance Near Gate 1",
+    "St. La Salle Building Entrance Near CLF",
+    "CLF Entrance",
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation"
+  ],
+  "Gate 2→St. Mutien Marie Administration Building": [
+    "Gate 2",
+    "Covered Walk between CPA and St. Mutien",
+    "St. Mutien Marie Building Entrance",
+    "St. Mutien Marie Administration Building"
+  ],
+  "Gate 2→Cadlum Hall & St. Leo Flavius Hall": [
+    "Gate 2",
+    "School Fountain",
+    "Cadlum Hall & St. Leo Flavius Hall"
+  ],
+  "Gate 2→St. Joseph Building": [
+    "Gate 2",
+    "School Fountain",
+    "Cadlum Hall & St. Leo Flavius Hall",
+    "St. Joseph Building"
+  ],
+  "Gate 2→Taekwondo Gym 3": [
+    "Gate 2",
+    "School Fountain",
+    "Cadlum Hall & St. Leo Flavius Hall",
+    "St. Joseph Building",
+    "Taekwondo Gym 3"
+  ],
+  "Gate 2→Sports Pavilion": [
+    "Gate 2",
+    "School Fountain",
+    "Sports Pavilion"
+  ],
+  "Gate 2→Julius K. Quiambao Football Field": [
+    "Gate 2",
+    "Covered Walk between CPA and St. Mutien",
+    "Covered Walk at the back of Sports Pavilion",
+    "Julius K. Quiambao Football Field"
+  ],
+  "Gate 3→St. Mutien Marie Administration Building": [
+    "Gate 3",
+    "St. Mutien Marie Building Entrance",
+    "St. Mutien Marie Administration Building"
+  ],
+  "Gate 3→Julius K. Quiambao Football Field": [
+    "Gate 3",
+    "Football Field Entrance near St. Mutien Building",
+    "Julius K. Quiambao Football Field"
+  ],
+  "Gate 3→St. La Salle Building": [
+    "Gate 3",
+    "St. La Salle Building Entrance Near Gate 3",
+    "St. La Salle Building"
+  ],
+  "Gate 3→Debbie Decena Auditorium": [
+    "Gate 3",
+    "St. La Salle Building Entrance Near Gate 3",
+    "Debbie Decena Auditorium"
+  ],
+  "Gate 3→Br. Ceci Hojilla FSC Center for Lasallian Formation": [
+    "Gate 3",
+    "St. La Salle Building Entrance Near Gate 3",
+    "St. La Salle Building Entrance Near CLF",
+    "CLF Entrance",
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation"
+  ],
+  "Gate 3→Angelo King Center for Performing Arts": [
+    "Gate 3",
+    "Covered Walk between CPA and St. Mutien",
+    "CPA Entrance",
+    "Angelo King Center for Performing Arts"
+  ],
+  "Gate 3→Cadlum Hall & St. Leo Flavius Hall": [
+    "Gate 3",
+    "Covered Walk between CPA and St. Mutien",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Cadlum Hall & St. Leo Flavius Hall"
+  ],
+  "Gate 3→St. Joseph Building": [
+    "Gate 3",
+    "Covered Walk between CPA and St. Mutien",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Parking in front of Sports Pavilion",
+    "St. Joseph Building"
+  ],
+  "Gate 3→Taekwondo Gym 3": [
+    "Gate 3",
+    "Covered Walk between CPA and St. Mutien",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Parking in front of Sports Pavilion",
+    "St. Joseph Building",
+    "Taekwondo Gym 3"
+  ],
+  "Our Lady of the Star Chapel→Br. Ceci Hojilla FSC Center for Lasallian Formation": [
+    "Our Lady of the Star Chapel",
+    "CLF Entrance",
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation"
+  ],
+  "Our Lady of the Star Chapel→Debbie Decena Auditorium": [
+    "Our Lady of the Star Chapel",
+    "St. La Salle Building Entrance Near CLF",
+    "St. La Salle Building Entrance Near Gate 3",
+    "Debbie Decena Auditorium"
+  ],
+  "Our Lady of the Star Chapel→St. La Salle Building": [
+    "Our Lady of the Star Chapel",
+    "St. La Salle Building Entrance Near CLF",
+    "St. La Salle Building Entrance Near Gate 3",
+    "Debbie Decena Auditorium",
+    "St. La Salle Building"
+  ],
+  "Our Lady of the Star Chapel→St. Mutien Marie Administration Building": [
+    "Our Lady of the Star Chapel",
+    "St. La Salle Building Entrance Near CLF",
+    "St. La Salle Building Entrance Near Gate 3",
+    "St. Mutien Marie Building Entrance",
+    "St. Mutien Marie Administration Building"
+  ],
+  "Our Lady of the Star Chapel→Julius K. Quiambao Football Field": [
+    "Our Lady of the Star Chapel",
+    "St. La Salle Building Entrance Near CLF",
+    "St. La Salle Building Entrance Near Gate 3",
+    "Gate 3",
+    "Football Field Entrance near St. Mutien Building",
+    "Julius K. Quiambao Football Field"
+  ],
+  "Our Lady of the Star Chapel→Angelo King Center for Performing Arts": [
+    "Our Lady of the Star Chapel",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Covered Walk between CPA and St. Mutien",
+    "CPA Entrance",
+    "Angelo King Center for Performing Arts"
+  ],
+  "Our Lady of the Star Chapel→Cadlum Hall & St. Leo Flavius Hall": [
+    "Our Lady of the Star Chapel",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Parking in front of St. La Salle Building",
+    "School Fountain",
+    "Cadlum Hall & St. Leo Flavius Hall"
+  ],
+  "Our Lady of the Star Chapel→Sports Pavilion": [
+    "Our Lady of the Star Chapel",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Parking in front of St. La Salle Building",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "Sports Pavilion"
+  ],
+  "Our Lady of the Star Chapel→St. Joseph Building": [
+    "Our Lady of the Star Chapel",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Parking in front of St. La Salle Building",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "St. Joseph Building"
+  ],
+  "Our Lady of the Star Chapel→Taekwondo Gym 3": [
+    "Our Lady of the Star Chapel",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Parking in front of St. La Salle Building",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "Taekwondo Gym 3"
+  ],
+  "Br. Ceci Hojilla FSC Center for Lasallian Formation→Debbie Decena Auditorium": [
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation",
+    "St. La Salle Building Entrance Near CLF",
+    "Debbie Decena Auditorium"
+  ],
+  "Br. Ceci Hojilla FSC Center for Lasallian Formation→St. La Salle Building": [
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation",
+    "St. La Salle Building Entrance Near CLF",
+    "Debbie Decena Auditorium",
+    "St. La Salle Building"
+  ],
+  "Br. Ceci Hojilla FSC Center for Lasallian Formation→St. Mutien Marie Administration Building": [
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation",
+    "St. La Salle Building Entrance Near CLF",
+    "St. La Salle Building Entrance Near Gate 3",
+    "St. Mutien Marie Building Entrance",
+    "St. Mutien Marie Administration Building"
+  ],
+  "Br. Ceci Hojilla FSC Center for Lasallian Formation→Julius K. Quiambao Football Field": [
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation",
+    "St. La Salle Building Entrance Near CLF",
+    "St. La Salle Building Entrance Near Gate 3",
+    "Football Field Entrance near St. Mutien Building",
+    "Julius K. Quiambao Football Field"
+  ],
+  "Br. Ceci Hojilla FSC Center for Lasallian Formation→Angelo King Center for Performing Arts": [
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation",
+    "St La Salle Building Entrance Near CLF",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Covered Walk between CPA and St. Mutien",
+    "CPA Entrance",
+    "Angelo King Center for Performing Arts"
+  ],
+  "Br. Ceci Hojilla FSC Center for Lasallian Formation→Sports Pavilion": [
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation",
+    "St La Salle Building Entrance Near CLF",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Covered Walk between CPA and St. Mutien",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Sports Pavilion"
+  ],
+  "Br. Ceci Hojilla FSC Center for Lasallian Formation→Cadlum Hall & St. Leo Flavius Hall": [
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation",
+    "St. La Salle Building Entrance Near CLF",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Parking in front of St. La Salle Building",
+    "School Fountain",
+    "Cadlum Hall & St. Leo Flavius Hall"
+  ],
+  "Br. Ceci Hojilla FSC Center for Lasallian Formation→St. Joseph Building": [
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation",
+    "St. La Salle Building Entrance Near CLF",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Parking in front of St. La Salle Building",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "St. Joseph Building"
+  ],
+  "Br. Ceci Hojilla FSC Center for Lasallian Formation→Taekwondo Gym 3": [
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation",
+    "St. La Salle Building Entrance Near CLF",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Parking in front of St. La Salle Building",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "Taekwondo Gym 3"
+  ],
+  "Debbie Decena Auditorium→Our Lady of the Star Chapel": [
+    "Debbie Decena Auditorium",
+    "St. La Salle Building Entrance Near CLF",
+    "Our Lady of the Star Chapel"
+  ],
+  "Debbie Decena Auditorium→Br. Ceci Hojilla FSC Center for Lasallian Formation": [
+    "Debbie Decena Auditorium",
+    "St. La Salle Building Entrance Near CLF",
+    "CLF Entrance",
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation"
+  ],
+  "Debbie Decena Auditorium→St. Mutien Marie Administration Building": [
+    "Debbie Decena Auditorium",
+    "St. La Salle Building Entrance Near Gate 3",
+    "St. Mutien Marie Building Entrance",
+    "St. Mutien Marie Administration Building"
+  ],
+  "Debbie Decena Auditorium→Julius K. Quiambao Football Field": [
+    "Debbie Decena Auditorium",
+    "St. La Salle Building Entrance Near Gate 3",
+    "Football Field Entrance near St. Mutien Building",
+    "Julius K. Quiambao Football Field"
+  ],
+  "Debbie Decena Auditorium→Sports Pavilion": [
+    "Debbie Decena Auditorium",
+    "St. La Salle Building Entrance Beside DLSZ Finance",
+    "Covered Walk between CPA and St. Mutien",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Sports Pavilion"
+  ],
+  "Debbie Decena Auditorium→Angelo King Center for Performing Arts": [
+    "Debbie Decena Auditorium",
+    "Debbie Decena Entrance",
+    "Covered Walk between CPA and St. Mutien",
+    "CPA Entrance",
+    "Angelo King Center for Performing Arts"
+  ],
+  "Debbie Decena Auditorium→Cadlum Hall & St. Leo Flavius Hall": [
+    "Debbie Decena Auditorium",
+    "St. La Salle Building Entrance Beside DLSZ Finance",
+    "Covered Walk between CPA and St. Mutien",
+    "School Fountain",
+    "Cadlum Hall & St. Leo Flavius Hall"
+  ],
+  "Debbie Decena Auditorium→St. Joseph Building": [
+    "Debbie Decena Auditorium",
+    "St. La Salle Building Entrance Beside DLSZ Finance",
+    "Covered Walk between CPA and St. Mutien",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "St. Joseph Building"
+  ],
+  "Debbie Decena Auditorium→Taekwondo Gym 3": [
+    "Debbie Decena Auditorium",
+    "St. La Salle Building Entrance Beside DLSZ Finance",
+    "Covered Walk between CPA and St. Mutien",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "Taekwondo Gym 3"
+  ],
+  "St. La Salle Building→Our Lady of the Star Chapel": [
+    "St. La Salle Building",
+    "St. La Salle Building Entrance Near CLF",
+    "Our Lady of the Star Chapel"
+  ],
+  "St. La Salle Building→St. Mutien Marie Administration Building": [
+    "St. La Salle Building",
+    "St. La Salle Building Entrance Near Gate 3",
+    "St. Mutien Marie Building Entrance",
+    "St. Mutien Marie Administration Building"
+  ],
+  "St. La Salle Building→Julius K. Quiambao Football Field": [
+    "St. La Salle Building",
+    "Covered Walk between CPA and St. Mutien",
+    "Covered Walk at the back of Sports Pavilion",
+    "Julius K. Quiambao Football Field"
+  ],
+  "St. La Salle Building→Sports Pavilion": [
+    "St. La Salle Building",
+    "Covered Walk between CPA and St. Mutien",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Sports Pavilion"
+  ],
+  "St. La Salle Building→Angelo King Center for Performing Arts": [
+    "St. La Salle Building",
+    "St. La Salle Building Entrance Beside DLSZ Finance",
+    "Covered Walk between CPA and St. Mutien",
+    "CPA Entrance",
+    "Angelo King Center for Performing Arts"
+  ],
+  "St. La Salle Building→Cadlum Hall & St. Leo Flavius Hall": [
+    "St. La Salle Building",
+    "St. La Salle Building Entrance Beside DLSZ Finance",
+    "Covered Walk between CPA and St. Mutien",
+    "School Fountain",
+    "Cadlum Hall & St. Leo Flavius Hall"
+  ],
+  "St. La Salle Building→St. Joseph Building": [
+    "St. La Salle Building",
+    "St. La Salle Building Entrance Beside DLSZ Finance",
+    "Covered Walk between CPA and St. Mutien",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "St. Joseph Building"
+  ],
+  "St. La Salle Building→Taekwondo Gym 3": [
+    "St. La Salle Building",
+    "St. La Salle Building Entrance Beside DLSZ Finance",
+    "Covered Walk between CPA and St. Mutien",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "Taekwondo Gym 3"
+  ],
+  "St. Mutien Marie Administration Building→Our Lady of the Star Chapel": [
+    "St. Mutien Marie Building Entrance",
+    "St. La Salle Building Entrance Near Gate 3",
+    "St. La Salle Building Entrance Near CLF",
+    "CLF Entrance",
+    "Our Lady of the Star Chapel"
+  ],
+  "St. Mutien Marie Administration Building→Br. Ceci Hojilla FSC Center for Lasallian Formation": [
+    "St. Mutien Marie Administration Building",
+    "St. La Salle Building Entrance Near Gate 3",
+    "St. La Salle Building Entrance Near CLF",
+    "CLF Entrance",
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation"
+  ],
+  "St. Mutien Marie Administration Building→Debbie Decena Auditorium": [
+    "St. Mutien Marie Administration Building",
+    "St. Mutien Marie Building Entrance",
+    "St. La Salle Building Entrance Near Gate 3",
+    "Debbie Decena Auditorium"
+  ],
+  "St. Mutien Marie Administration Building→St. La Salle Building": [
+    "St. Mutien Marie Administration Building",
+    "St. Mutien Marie Building Entrance",
+    "St. La Salle Building Entrance Near Gate 3",
+    "St. La Salle Building"
+  ],
+  "St. Mutien Marie Administration Building→Julius K. Quiambao Football Field": [
+    "St. Mutien Marie Administration Building",
+    "St. Mutien Marie Building Entrance",
+    "Covered Walk between CPA and St. Mutien",
+    "Covered Walk at the back of Sports Pavilion",
+    "Julius K. Quiambao Football Field"
+  ],
+  "St. Mutien Marie Administration Building→Sports Pavilion": [
+    "St. Mutien Marie Administration Building",
+    "St. Mutien Marie Building Entrance",
+    "Covered Walk between CPA and St. Mutien",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Sports Pavilion"
+  ],
+  "St. Mutien Marie Administration Building→Angelo King for Performing Arts": [
+    "St. Mutien Marie Administration Building",
+    "St. Mutien Marie Building Entrance",
+    "School Fountain",
+    "CPA Entrance",
+    "Angelo King for Performing Arts"
+  ],
+  "St. Mutien Marie Administration Building→Cadlum Hall & St. Leo Flavius Hall": [
+    "St. Mutien Marie Administration Building",
+    "St. Mutien Marie Building Entrance",
+    "School Fountain",
+    "Cadlum Hall & St. Leo Flavius Hall"
+  ],
+  "St. Mutien Marie Administration Building→St. Joseph Building": [
+    "St. Mutien Marie Administration Building",
+    "St. Mutien Marie Building Entrance",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "St. Joseph Building"
+  ],
+  "St. Mutien Marie Administration Building→Taekwondo Gym 3": [
+    "St. Mutien Marie Administration Building",
+    "St. Mutien Marie Building Entrance",
+    "School Fountain",
+    "Parking in front of Sports Pavilion",
+    "Taekwondo Gym 3"
+  ],
+  "Julius K. Quiambao Football Field→Our Lady of the Star Chapel": [
+    "Julius K. Quiambao Football Field",
+    "Football Field Entrance near St. Mutien Building",
+    "St. La Salle Building Entrance Near Gate 3",
+    "St. La Salle Building Entrance Near CLF",
+    "Our Lady of the Star Chapel"
+  ],
+  "Julius K. Quiambao Football Field→Br. Ceci Hojilla FSC Center for Lasallian Formation": [
+    "Julius K. Quiambao Football Field",
+    "Football Field Entrance near St. Mutien Building",
+    "St. La Salle Building Entrance Near Gate 3",
+    "St. La Salle Building Entrance Near CLF",
+    "CLF Entrance",
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation"
+  ],
+  "Julius K. Quiambao Football Field→St. La Salle Building": [
+    "Julius K. Quiambao Football Field",
+    "Football Field Entrance near St. Mutien Building",
+    "St. La Salle Building Entrance Near Gate 3",
+    "St. La Salle Building"
+  ],
+  "Julius K. Quiambao Football Field→Debbie Decena Auditorium": [
+    "Julius K. Quiambao Football Field",
+    "Football Field Entrance near St. Mutien Building",
+    "St. La Salle Building Entrance Near Gate 3",
+    "St. La Salle Building",
+    "Debbie Decena Auditorium"
+  ],
+  "Julius K. Quiambao Football Field→Cadlum Hall & St. Leo Flavius Hall": [
+    "Julius K. Quiambao Football Field",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Cadlum Hall & St. Leo Flavius Hall"
+  ],
+  "Julius K. Quiambao Football Field→St. Joseph Building": [
+    "Julius K. Quiambao Football Field",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Parking in front of Sports Pavilion",
+    "St. Joseph Building"
+  ],
+  "Julius K. Quiambao Football Field→Taekwondo Gym 3": [
+    "Julius K. Quiambao Football Field",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Parking in front of Sports Pavilion",
+    "Taekwondo Gym 3"
+  ],
+  "Angelo King for Performing Arts→Our Lady of the Star Chapel": [
+    "Angelo King for Performing Arts",
+    "School Fountain",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Our Lady of the Star Chapel"
+  ],
+  "Angelo King for Performing Arts→Br. Ceci Hojilla FSC Center for Lasallian Formation": [
+    "Angelo King for Performing Arts",
+    "School Fountain",
+    "St. La Salle Building Entrance Near Gate 1",
+    "St La Salle Building Entrance Near CLF",
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation"
+  ],
+  "Angelo King for Performing Arts→Debbie Decena Auditorium": [
+    "Angelo King for Performing Arts",
+    "St. La Salle Building Entrance Beside DLSZ Finance",
+    "Debbie Decena Auditorium"
+  ],
+  "Angelo King for Performing Arts→St. La Salle Building": [
+    "Angelo King for Performing Arts",
+    "St. La Salle Building Entrance Beside DLSZ Finance",
+    "St. La Salle Building"
+  ],
+  "Angelo King for Performing Arts→St. Mutien Marie Administration Building": [
+    "Angelo King for Performing Arts",
+    "Covered Walk between CPA and St. Mutien",
+    "St. Mutien Marie Building Entrance",
+    "St. Mutien Marie Building Administration Building"
+  ],
+  "Angelo King for Performing Arts→Julius K. Quiambao Football Field": [
+    "Angelo King for Performing Arts",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Covered Walk at the back of Sports Pavilion",
+    "Julius K. Quiambao Football Field"
+  ],
+  "Sports Pavilion→Our Lady of the Star Chapel": [
+    "Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and St. Mutien",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Our Lady of the Star Chapel"
+  ],
+  "Sports Pavilion→Br. Ceci Hojilla FSC Center for Lasallian Formation": [
+    "Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and St. Mutien",
+    "St. La Salle Building Entrance Near Gate 1",
+    "St. La Salle Building Entrance Near CLF",
+    "CLF Entrance",
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation"
+  ],
+  "Sports Pavilion→St. Mutien Marie Administration Building": [
+    "Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and St. Mutien",
+    "St. Mutien Marie Building Entrance",
+    "St. Mutien Marie Administration Building"
+  ],
+  "Taekwondo Gym 3→Our Lady of the Star Chapel": [
+    "Taekwondo Gym 3",
+    "Parking in front of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and St. Mutien",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Our Lady of the Star Chapel"
+  ],
+  "Taekwondo Gym 3→Br. Ceci Hojilla FSC Center for Lasallian Formation": [
+    "Taekwondo Gym 3",
+    "Parking in front of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and St. Mutien",
+    "St. La Salle Building Entrance Near Gate 1",
+    "St. La Salle Building Entrance Near CLF",
+    "CLF Entrance",
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation"
+  ],
+  "Taekwondo Gym 3→St. Mutien Marie Administration Building": [
+    "Taekwondo Gym 3",
+    "Parking in front of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and St. Mutien",
+    "St. Mutien Marie Building Entrance",
+    "St. Mutien Marie Administration Building"
+  ],
+  "St. Joseph Building→Our Lady of the Star Chapel": [
+    "St. Joseph Building",
+    "Parking in front of Sports Pavilion",
+    "School Fountain",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Our Lady of the Star Chapel"
+  ],
+  "St. Joseph Building→Br. Ceci Hojilla FSC Center for Lasallian Formation": [
+    "St. Joseph Building",
+    "Parking in front of Sports Pavilion",
+    "School Fountain",
+    "St. La Salle Building Entrance Near Gate 1",
+    "St. La Salle Building Entrance Near CLF",
+    "CLF Entrance",
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation"
+  ],
+  "St. Joseph Building→St. Mutien Marie Administration Building": [
+    "St. Joseph Building",
+    "Parking in front of Sports Pavilion",
+    "Covered Walk between CPA and Sports Pavilion",
+    "Covered Walk at the back of Sports Pavilion",
+    "Covered Walk between CPA and St. Mutien",
+    "St. Mutien Marie Building Entrance",
+    "St. Mutien Marie Administration Building"
+  ],
+  "Cadlum Hall & St. Leo Flavius Hall→Our Lady of the Star Chapel": [
+    "Cadlum Hall & St. Leo Flavius Hall",
+    "School Fountain",
+    "St. La Salle Building Entrance Near Gate 1",
+    "Our Lady of the Star Chapel"
+  ],
+  "Cadlum Hall & St. Leo Flavius Hall→Br. Ceci Hojilla FSC Center for Lasallian Formation": [
+    "Cadlum Hall & St. Leo Flavius Hall",
+    "School Fountain",
+    "St. La Salle Building Entrance Near Gate 1",
+    "St. La Salle Building Entrance Near CLF",
+    "CLF Entrance",
+    "Br. Ceci Hojilla FSC Center for Lasallian Formation"
+  ],
+  "Cadlum Hall & St. Leo Flavius Hall→St. Mutien Marie Administration Building": [
+    "Cadlum Hall & St. Leo Flavius Hall",
+    "School Fountain",
+    "Covered Walk between CPA and St. Mutien",
+    "St. Mutien Marie Building Entrance",
+    "St. Mutien Marie Administration Building"
+  ]
+};
+// === AUTO-GENERATE REVERSE ROUTES ===
+const reversedRoutes = {};
+
+for (const [key, path] of Object.entries(manualRoutes)) {
+  if (!Array.isArray(path)) continue;
+  const [from, to] = key.split("→");
+  if (from && to) {
+    const reversedKey = `${to}→${from}`;
+    // Only add if not already defined
+    if (!manualRoutes[reversedKey]) {
+      reversedRoutes[reversedKey] = [...path].reverse();
+    }
+  }
+}
+
+// Merge reversed routes into manualRoutes
+Object.assign(manualRoutes, reversedRoutes);
+
+console.log(`✅ Added ${Object.keys(reversedRoutes).length} reversed routes.`);
+
+
+// ================================
+// Distance & Time Utilities
+// ================================
+const WALKING_SPEED = 1.4; // meters per second
+
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000, toRad = deg => deg * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function pathDistance(path) {
+  let total = 0;
+  for (let i = 0; i < path.length - 1; i++) {
+    const b1 = buildings.find(b => b.name === path[i]);
+    const b2 = buildings.find(b => b.name === path[i + 1]);
+    if (b1 && b2) total += getDistance(b1.coords[0], b1.coords[1], b2.coords[0], b2.coords[1]);
+  }
+  return total;
+}
+
+// ================================
+// Route Finder (Manual Only)
+// ================================
+function getBuildingRoute(start, end) {
+  const key = `${start}→${end}`;
+  const path = manualRoutes[key];
+  if (!path) return [start, end];
+  return path;
+}
+
+// ================================
+// Route Computation (Leaflet)
+// ================================
+let routeLayer = null;
+
+function computeRoute(start, end) {
+  const path = getBuildingRoute(start, end);
+  if (!path) return console.warn("No route found");
+
+  const coords = path.map(name => {
+    const b = buildings.find(x => x.name === name);
+    const entrance = buildingEntrances[name];
+    return b?.coords || buildings.find(x => x.name === entrance)?.coords || null;
+  }).filter(Boolean);
+
+  if (routeLayer) map.removeLayer(routeLayer);
+  routeLayer = L.polyline(coords, { color: "#90ee90", weight: 5, dashArray: "5,5" }).addTo(map);
+  map.fitBounds(routeLayer.getBounds(), { padding: [40, 40] });
+
+  updateSteps(path);
+  updateDistanceTime(path);
+}
+
+function updateSteps(path) {
+  const el = document.getElementById("steps");
+  if (!el) return;
+  el.innerHTML = path.map((b, i) => {
+    const step = i === 0 ? "Start at" : i === path.length - 1 ? "Arrive at" : "Go to";
+    return `<li>${step} ${b}</li>`;
+  }).join("");
+}
+
+function updateDistanceTime(path) {
+  const totalDistance = pathDistance(path); // meters
+  const totalTime = totalDistance / WALKING_SPEED; // seconds
+  const el = document.getElementById("distanceTime");
+  if (!el) return;
+  el.innerHTML = `Distance: ${(totalDistance/1000).toFixed(2)} km | Estimated Time: ${Math.ceil(totalTime/60)} min`;
+}
+
+// ================================
+// Markers & Info Only (no route clicks)
+// ================================
+function focusCarouselOn(buildingName) {
+  const idx = places.indexOf(buildingName);
+  if (idx !== -1) {
+    placeIndex = idx;
+    renderCarousel(true);  // update carousel with this building in the center
+    showToast(`Gallery switched to ${buildingName}`);
+  }
+}
+
+let markers = {};
+
+buildings.forEach(b => {
+  const marker = L.marker(b.coords, { icon: b.dot ? dotIcon : buildingIcon }).addTo(map);
+  markers[b.name] = marker;
+  marker.bindPopup(`<b>${b.name}</b><br>${b.info || ''}`);
+
+  let locked = false;
+
+  marker.on('mouseover', () => { 
+    if (!locked) marker.openPopup(); 
+    setTimeout(() => { 
+      const cw = document.querySelector('.leaflet-popup-content-wrapper'); 
+      if (cw) cw.classList.add('pop-float'); 
+    }, 10); 
+  });
+
+  marker.on('mouseout', () => { 
+    if (!locked) marker.closePopup(); 
+  });
+
+  marker.on('popupclose', () => { 
+    locked = false; 
+    const cw = document.querySelector('.leaflet-popup-content-wrapper'); 
+    if (cw) cw.classList.remove('pop-float'); 
+  });
+
+  // 🔹 Single click: show info only
+  marker.on('click', () => {
+    locked = true;
+    marker.openPopup();
+    focusCarouselOn(b.name);
+  });
+
+  // 🔹 Double click: target setting (kept if you still use it)
+  marker.on('dblclick', () => {
+    setTarget(b.name);
+    showToast(`Target set: ${b.name}`);
+    marker.openPopup();
+  });
+});
+
+      // ===== TIMELINE ====
+      try {
+        const timelineFab = document.getElementById("timelineFab");
+        const timelineModal = document.getElementById("timelineModal");
+        const timelineModalClose = document.getElementById("timelineModalClose");
+
+        if(timelineFab && timelineModal){
+          timelineFab.addEventListener("click", () => {
+            timelineModal.classList.add("show");
+            timelineModal.setAttribute("aria-hidden", "false");
+          });
+        }
+        if(timelineModalClose && timelineModal){
+          timelineModalClose.addEventListener("click", () => {
+            timelineModal.classList.remove("show");
+            timelineModal.setAttribute("aria-hidden", "true");
+          });
+        }
+        timelineModal?.addEventListener("click", (e) => {
+          if (e.target === timelineModal) {
+            timelineModal.classList.remove("show");
+            timelineModal.setAttribute("aria-hidden", "true");
+          }
+        });
+
+        const items = document.querySelectorAll(".timeline-item");
+        if(items && items.length){
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) entry.target.classList.add("show");
+              else entry.target.classList.remove("show");
+            });
+          }, { threshold: 0.3 });
+          items.forEach(item => observer.observe(item));
+        }
+
+        const container = document.getElementById("timeline");
+        const prevBtn = document.querySelector("#timelineModal .prev-btn");
+        const nextBtn = document.querySelector("#timelineModal .next-btn");
+        const scrollAmount = 300;
+        if(prevBtn && container) prevBtn.addEventListener("click", ()=> container.scrollBy({ left: -scrollAmount, behavior: "smooth" }));
+        if(nextBtn && container) nextBtn.addEventListener("click", ()=> container.scrollBy({ left: scrollAmount, behavior: "smooth" }));
+      } catch(e){ console.error('Timeline init error', e); }
+
+   // ===== modal logic (improved slide + fade) =====
+const modal = document.getElementById('infoModal');
+const modalImg = document.getElementById('modalImg');
+const modalTitle = document.getElementById('modalTitle');
+const modalInfo = document.getElementById('modalInfo');
+
+let currentGallery = [], galleryIndex = 0, activeBuildingName = '';
+
+// 👇 helper to update button visibility
+function updateModalNavButtons() {
+  const prevBtn = document.getElementById('modalPrev');
+  const nextBtn = document.getElementById('modalNext');
+  if (!currentGallery.length) return;
+
+  prevBtn.style.display = (galleryIndex === 0) ? 'none' : 'flex';
+  nextBtn.style.display = (galleryIndex === currentGallery.length - 1) ? 'none' : 'flex';
+}
+
+function showModalFromCurrent(){
+  if(!currentGallery || !currentGallery.length) return;
+  resetModalTTS();
+  if(!modal) return;
+  modal.style.display = 'flex';
+  requestAnimationFrame(()=> modal.classList.add('show') );
+  setTimeout(()=>{
+    modalImg.src = currentGallery[galleryIndex].src;
+    modalTitle.textContent = activeBuildingName || '';
+    modalInfo.textContent = currentGallery[galleryIndex].desc || '';
+    updateModalNavButtons();   // 👈 update nav buttons on open
+  }, 60);
+}
+
+function openInfoModal(name, index){
+  const gallery = buildingGalleries[name];
+  if(gallery && gallery.length){ currentGallery = gallery.slice(); }
+  if(!currentGallery || !currentGallery.length) return;
+  galleryIndex = (typeof index === 'number') ? Math.max(0, Math.min(index, currentGallery.length-1)) : 0;
+  activeBuildingName = name || activeBuildingName || '';
+  showModalFromCurrent();
+}
+
+function closeModal(){
+  resetModalTTS();
+  modal.classList.remove('show');
+  setTimeout(()=>{ modal.style.display = 'none'; }, 280);
+}
+
+function updateModalImage(direction){
+  if(!currentGallery.length) return;
+  resetModalTTS();
+  const next = currentGallery[galleryIndex];
+  modalTitle.textContent = activeBuildingName || '';
+  modalInfo.textContent = next.desc || '';
+
+  const wrapper = document.getElementById('modalWrapper');
+  if(!wrapper) return;
+  wrapper.style.position = 'relative';
+
+  const incoming = document.createElement('img');
+  incoming.src = next.src;
+  incoming.style.position = 'absolute';
+  incoming.style.left = '50%';
+  incoming.style.top = '50%';
+  const startX = (direction === 'prev') ? '-120%' : '120%';
+  incoming.style.transform = `translate(-50%,-50%) translateX(${startX})`;
+  incoming.style.maxWidth = '92%'; incoming.style.maxHeight = '68vh';
+  incoming.style.borderRadius = '12px';
+  incoming.style.transition = 'transform 0.38s cubic-bezier(.2,.9,.3,1), opacity 0.32s ease';
+  incoming.style.opacity = '0';
+  wrapper.appendChild(incoming);
+
+  requestAnimationFrame(() => {
+    const exitX = (direction === 'prev') ? '120%' : '-120%';
+    modalImg.style.transform = `translateX(${exitX})`;
+    modalImg.style.opacity = '0';
+    incoming.style.transform = 'translate(-50%,-50%) translateX(0)';
+    incoming.style.opacity = '1';
+  });
+
+  const onTransitionEnd = (e) => {
+    if (e.target !== incoming) return;
+    incoming.removeEventListener('transitionend', onTransitionEnd);
+    modalImg.style.transition = 'none';
+    modalImg.src = next.src;
+    modalImg.style.transform = 'none';
+    modalImg.style.opacity = '1';
+    void modalImg.offsetWidth;
+    modalImg.style.transition = '';
+    if (incoming.parentNode) incoming.parentNode.removeChild(incoming);
+
+    updateModalNavButtons();   // 👈 update nav buttons on image change
+  };
+  incoming.addEventListener('transitionend', onTransitionEnd);
+}
+
+document.getElementById('modalNext')?.addEventListener('click', ()=>{
+  if(!currentGallery.length) return;
+  if (galleryIndex < currentGallery.length - 1) {   // 👈 prevent looping
+    galleryIndex++;
+    updateModalImage('next');
+  }
+});
+
+document.getElementById('modalPrev')?.addEventListener('click', ()=>{
+  if(!currentGallery.length) return;
+  if (galleryIndex > 0) {   // 👈 prevent looping
+    galleryIndex--;
+    updateModalImage('prev');
+  }
+});
+
+document.getElementById('closeModal')?.addEventListener('click', closeModal);
+modal?.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
+
+// modal touch gestures
+const modalWrapper = document.getElementById('modalWrapper');
+if(modalWrapper){
+  let modalTouchStartX = 0; let modalIsDragging = false;
+  modalWrapper.addEventListener('touchstart', e => { 
+    modalTouchStartX = e.touches[0].clientX; 
+    modalIsDragging = true; 
+  });
+  modalWrapper.addEventListener('touchend', e => {
+    if (!modalIsDragging) return;
+    modalIsDragging = false;
+    const deltaX = e.changedTouches[0].clientX - modalTouchStartX;
+    if (deltaX > 50 && galleryIndex > 0) {   // 👈 only if not first
+      galleryIndex--;
+      updateModalImage('prev');
+    } else if (deltaX < -50 && galleryIndex < currentGallery.length - 1) {   // 👈 only if not last
+      galleryIndex++;
+      updateModalImage('next');
+    }
+  });
+}
+
+      // ===== Carousel (animated) =====
+      const places = Object.keys(buildingGalleries);
+      let placeIndex = 0;
+      const viewportEl = document.getElementById('carouselViewport');
+      let isAnimating = false;
+      const animDuration = 440;
+
+      function makeCard(i, cls) {
+        const card = document.createElement('div');
+        card.className = `carousel-card ${cls}`;
+        const img = document.createElement('img');
+        img.src = buildingGalleries[places[i]][0].src;
+        img.alt = places[i];
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.textContent = places[i];
+        card.appendChild(img);
+        card.appendChild(label);
+
+        if (cls === 'center') {
+          card.onclick = () => {
+            card.style.transform = (card.style.transform || '') + ' scale(1.06)';
+            setTimeout(() => { card.style.transform = ''; openInfoModal(places[i], 0); }, 120);
+          };
+        } else {
+          card.onclick = () => {
+            const nextIdx = (placeIndex + 1) % places.length;
+            animateCarousel(i === nextIdx ? 'next' : 'prev');
+          };
+        }
+        return card;
+      }
+
+      function renderCarousel(updateOnly = false) {
+        if (!places.length || !viewportEl) return;
+        const prevIdx = (placeIndex - 1 + places.length) % places.length;
+        const nextIdx = (placeIndex + 1) % places.length;
+
+        if (updateOnly && viewportEl.children.length === 3) {
+          const prevCard = viewportEl.children[0];
+          const centerCard = viewportEl.children[1];
+          const nextCard = viewportEl.children[2];
+
+          prevCard.className = "carousel-card side";
+          prevCard.querySelector("img").src = buildingGalleries[places[prevIdx]][0].src;
+          prevCard.querySelector(".label").textContent = places[prevIdx];
+          prevCard.onclick = () => animateCarousel('prev');
+
+          centerCard.className = "carousel-card center";
+          centerCard.querySelector("img").src = buildingGalleries[places[placeIndex]][0].src;
+          centerCard.querySelector(".label").textContent = places[placeIndex];
+          centerCard.onclick = () => { centerCard.style.transform = (centerCard.style.transform || '') + ' scale(1.06)'; setTimeout(() => { centerCard.style.transform = ''; openInfoModal(places[placeIndex], 0); }, 120); };
+
+          nextCard.className = "carousel-card side";
+          nextCard.querySelector("img").src = buildingGalleries[places[nextIdx]][0].src;
+          nextCard.querySelector(".label").textContent = places[nextIdx];
+          nextCard.onclick = () => animateCarousel('next');
+
+          return;
+        }
+
+        viewportEl.innerHTML = '';
+        viewportEl.appendChild(makeCard(prevIdx, 'side'));
+        viewportEl.appendChild(makeCard(placeIndex, 'center'));
+        viewportEl.appendChild(makeCard(nextIdx, 'side'));
+      }
+
+      function animateCarousel(dir) {
+        if (isAnimating) return;
+        if (!places.length) return;
+        isAnimating = true;
+        if (viewportEl.children.length !== 3) { renderCarousel(); }
+
+        const prevEl = viewportEl.children[0];
+        const centerEl = viewportEl.children[1];
+        const nextEl = viewportEl.children[2];
+
+        const newIndex = (dir === 'next') ? (placeIndex + 1) % places.length : (placeIndex - 1 + places.length) % places.length;
+
+        centerEl.classList.add('anim-center-out');
+        prevEl.classList.add('anim-side-zoom');
+        nextEl.classList.add('anim-side-zoom');
+
+        setTimeout(() => {
+          centerEl.classList.remove('anim-center-out');
+          prevEl.classList.remove('anim-side-zoom');
+          nextEl.classList.remove('anim-side-zoom');
+          placeIndex = newIndex;
+          renderCarousel(true);
+          setTimeout(()=>{ isAnimating = false; }, 40);
+        }, animDuration);
+      }
+
+      document.getElementById('galleryPrev')?.addEventListener('click', ()=>animateCarousel('prev'));
+      document.getElementById('galleryNext')?.addEventListener('click', ()=>animateCarousel('next'));
+
+      // touch swipe
+      if(viewportEl){
+        let touchStartX = 0;
+        viewportEl.addEventListener('touchstart', (e)=>{ touchStartX = e.touches[0].clientX; });
+        viewportEl.addEventListener('touchend', (e)=>{ const dx = e.changedTouches[0].clientX - touchStartX; if(dx < -40) animateCarousel('next'); else if(dx > 40) animateCarousel('prev'); });
+      }
+
+      // ===== Gallery FAB preview & open/close =====
+      (function setupGalleryFab(){
+        const fab = document.getElementById('galleryFab');
+        const imgEls = [document.getElementById('fabImg0'), document.getElementById('fabImg1')];
+        const keys = Object.keys(buildingGalleries);
+        const preview = [];
+        for(let i=0;i<Math.min(8, keys.length); i++){ const g = buildingGalleries[keys[i]]; if(g && g[0]) preview.push(g[0].src); }
+        if(preview.length === 0){ imgEls[0].style.opacity=0; }
+        else{
+          imgEls.forEach((el,i)=>{ if(el){ el.src = preview[i % preview.length]; if(i===0) el.classList.add('active'); } });
+          let idx=0;
+          setInterval(()=>{ if(!imgEls[0]||!imgEls[1]) return; imgEls[idx%2].classList.remove('active'); idx = (idx+1) % preview.length; imgEls[(idx)%2].src = preview[idx]; imgEls[(idx)%2].classList.add('active'); }, 2600);
+        }
+
+        const miniClose = document.getElementById('galleryMiniClose');
+        const panel = document.getElementById('galleryPanel');
+
+        if(fab){
+          fab.addEventListener('click', ()=>{
+            try {
+              if(!panel) return;
+              if(panel.classList.contains('active')){
+                panel.classList.remove('active');
+                miniClose?.classList.remove('show');
+                showToast('Gallery closed');
+              } else {
+                renderCarousel();
+                panel.classList.add('active');
+                miniClose?.classList.add('show');
+                showToast('Gallery opened');
+              }
+              setTimeout(positionControls, 110);
+            } catch(e){ console.error('galleryFab click', e); }
+          });
+        }
+        if(miniClose){
+          miniClose.addEventListener('click', ()=>{ if(!panel?.classList.contains('active')) return; panel.classList.remove('active'); miniClose.classList.remove('show'); showToast('Gallery closed'); setTimeout(positionControls, 110); });
+        }
+      })();
+
+      // key people FAB
+      document.getElementById('keyFab')?.addEventListener('click', ()=>{
+        const p = keyPeopleGallery[0];
+        if(!p){ showToast('No key people'); return; }
+        currentGallery = [{ src: p.src, desc: p.desc }]; galleryIndex = 0; activeBuildingName = p.name; showModalFromCurrent();
+      });
+
+const resetBtn = document.getElementById('resetDirections');
+const toggleAudioBtn = document.getElementById('toggleAudio');
+const guideToggleBtn = document.getElementById('guideToggleBtn');
+const targetStatus = document.getElementById('targetStatus');
+const targetNameEl = document.getElementById('targetName');
+const clearTargetBtn = document.getElementById('clearTarget');
+const targetProgressEl = document.getElementById('targetProgress'); 
+
+// Direction Panel Toggle Logic
+const guidePanel = document.getElementById("guide-panel");
+const guideHeader = document.getElementById("guide-header");
+
+guideHeader.addEventListener("click", () => {
+  guidePanel.classList.toggle("minimized");
+});
+
+// Optional: also toggle using the small "-" button
+const panelToggle = document.getElementById("panelToggle");
+panelToggle.addEventListener("click", (e) => {
+  e.stopPropagation(); // prevent triggering header click
+  guidePanel.classList.toggle("minimized");
+});
+
+// optional: live distance/time display
+
+let audioEnabled = false;
+let guideActive = false;
+let watchId = null;
+const triggerRadius = 30;
+let spokenBuildings = new Set();
+let targetedBuilding = null;
+let lastTargetState = 'far';
+let lastProgressUpdate = 0; // for 1-minute TTS repetition
+
+// --- Minimize / Expand toggle ---
+panelToggle.addEventListener('click', () => {
+  guidePanelEl.classList.toggle('minimized');
+  const minimized = guidePanelEl.classList.contains('minimized');
+  panelToggle.textContent = minimized ? '+' : '–';
+  panelToggle.title = minimized ? 'Expand' : 'Minimize';
+});
+
+// --- Reset directions ---
+resetBtn?.addEventListener('click', () => {
+  if (routeLayer) {
+    map.removeLayer(routeLayer);
+    routeLayer = null;
+  }
+  document.getElementById('steps').innerHTML = '';
+  showToast('Directions reset');
+  spokenBuildings = new Set();
+  currentRoute = null;
+  currentStepIndex = 0;
+  if (targetProgressEl) targetProgressEl.textContent = ''; // clear live panel
+});
+
+// --- Toggle Audio ---
+toggleAudioBtn?.addEventListener('click', () => {
+  audioEnabled = !audioEnabled;
+  toggleAudioBtn.textContent = audioEnabled ? '🔊 Audio: On' : '🔇 Audio: Off';
+  showToast(audioEnabled ? 'Audio enabled' : 'Audio disabled');
+  if (!audioEnabled) speechSynthesis.cancel();
+});
+
+// --- Proximity Guide toggle ---
+guideToggleBtn?.addEventListener('click', () => {
+  guideActive = !guideActive;
+  guideToggleBtn.textContent = guideActive ? '⏸ Stop Proximity Guide' : '▶ Start Proximity Guide';
+  if (guideActive) {
+    spokenBuildings = new Set();
+    lastTargetState = 'far';
+    startGuideMode();
+    showToast('Proximity guide started');
+  } else {
+    stopGuideMode();
+    showToast('Proximity guide stopped');
+  }
+});
+
+// --- Clear Target ---
+clearTargetBtn?.addEventListener('click', () => {
+  if (targetedBuilding) {
+    targetedBuilding = null;
+    targetStatus.style.display = 'none';
+    targetNameEl.textContent = '';
+    if (targetProgressEl) targetProgressEl.textContent = '';
+    showToast('Target cleared');
+  } else {
+    showToast('No target set');
+  }
+});
+
+// --- Geolocation Guide Logic ---
+function startGuideMode() {
+  if ('geolocation' in navigator) {
+    watchId = navigator.geolocation.watchPosition(
+      checkProximity,
+      err => {
+        console.warn(err);
+        showToast('GPS error');
+      },
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
+    );
+  } else {
+    showToast('Geolocation not supported');
+  }
+}
+
+function stopGuideMode() {
+  if (watchId) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+  }
+}
+
+function checkProximity(position) {
+  const { latitude, longitude } = position.coords;
+
+  if (currentRoute && currentRoute.length > 0) {
+    checkDirectionsProximity(latitude, longitude);
+  } else if (guideActive) {
+    checkProximityAll(latitude, longitude);
+  }
+
+  if (targetedBuilding) {
+    checkProximityTargeted(latitude, longitude);
+  }
+}
+
+// --- General Proximity Mode ---
+function checkProximityAll(lat, lon) {
+  buildings.forEach(building => {
+    if (building.dot) return; // skip dot markers
+    const dist = getDistance(lat, lon, building.coords[0], building.coords[1]);
+    if (dist <= triggerRadius && !spokenBuildings.has(building.name)) {
+      const msg = `You are near ${building.name}. ${building.info}`;
+      if (audioEnabled) speak(msg);
+      showToast(msg, 2500);
+      spokenBuildings.add(building.name);
+    }
+  });
+}
+
+// --- Directions Route Guidance ---
+function checkDirectionsProximity(lat, lon) {
+  if (!currentRoute || currentStepIndex >= currentRoute.length) return;
+
+  const [stepLat, stepLon] = currentRoute[currentStepIndex];
+  const dist = getDistance(lat, lon, stepLat, stepLon);
+
+  if (dist <= triggerRadius) {
+    let message = '';
+    const building = buildings.find(
+      b =>
+        Math.abs(b.coords[0] - stepLat) < 1e-5 &&
+        Math.abs(b.coords[1] - stepLon) < 1e-5
+    );
+
+    if (currentStepIndex === 0) {
+      message = `Starting at ${building ? building.name : 'your starting point'}`;
+    } else if (currentStepIndex === currentRoute.length - 1) {
+      message = `You have arrived at your destination: ${
+        building ? building.name : 'the target'
+      }`;
+    } else {
+      const nextCoords = currentRoute[currentStepIndex + 1];
+      const nextBuilding = buildings.find(
+        b =>
+          Math.abs(b.coords[0] - nextCoords[0]) < 1e-5 &&
+          Math.abs(b.coords[1] - nextCoords[1]) < 1e-5
+      );
+      message = `Now proceed towards ${
+        nextBuilding ? nextBuilding.name : 'the next location'
+      }`;
+    }
+
+    if (audioEnabled) speak(message);
+    currentStepIndex++;
+  }
+}
+
+// --- Target Proximity Tracking ---
+function checkProximityTargeted(lat, lon) {
+  if (!targetedBuilding) {
+    targetProgressEl.textContent = '';
+    return;
+  }
+
+  const b = buildings.find(x => x.name === targetedBuilding);
+  if (!b) {
+    targetProgressEl.textContent = '';
+    return;
+  }
+
+  const dist = getDistance(lat, lon, b.coords[0], b.coords[1]);
+  const walkingSpeed = 1.4; // meters/sec
+  const estTimeSec = dist / walkingSpeed;
+  const estTimeMin = Math.ceil(estTimeSec / 60);
+
+  // ✅ Live distance/time update
+  targetProgressEl.textContent = `Distance left: ${Math.round(dist)} m | Estimated time: ${estTimeMin} min`;
+
+  // Trigger radius announcement
+  if (dist <= triggerRadius && lastTargetState !== 'near') {
+    const msg = `You are now near ${b.name}. ${b.info}`;
+    if (audioEnabled) speak(msg);
+    showToast(msg, 2500);
+    lastTargetState = 'near';
+    targetProgressEl.textContent = ''; // clear panel when arrived
+  } else if (dist > triggerRadius && lastTargetState !== 'far') {
+    const msg = `You are ${Math.round(dist)} meters from ${b.name}. Estimated time: ${estTimeMin} minutes.`;
+    if (audioEnabled) speak(msg);
+    showToast(msg, 2500);
+    lastTargetState = 'far';
+  }
+
+  // 1-minute TTS repetition
+  const now = Date.now();
+  if (audioEnabled && dist > triggerRadius && now - lastProgressUpdate >= 60000) {
+    const msg = `Distance to ${b.name}: ${Math.round(dist)} meters. Estimated time remaining: ${estTimeMin} minutes.`;
+    speak(msg);
+    showToast(msg, 4000);
+    lastProgressUpdate = now;
+  }
+}
+
+  // ===== LIVE PANEL UPDATE (every second) =====
+function getDistance(lat1, lon1, lat2, lon2){
+  const R = 6371000; const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1); const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+// Text to speech helper (cancels previous)
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US";
+  speechSynthesis.speak(u);
+}
+
+function setTarget(name){
+  targetedBuilding = name;
+  targetStatus.style.display = 'block';
+  targetNameEl.textContent = name;
+  lastTargetState = 'far';
+  lastProgressUpdate = 0;
+  targetProgressEl.textContent = ''; // reset panel
+}
+
+// toast
+function showToast(msg, time=1200){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show'); t.style.display='block';
+  setTimeout(()=>{ t.style.display='none'; t.classList.remove('show'); }, time);
+}
+
+      // ===== Modal TTS single-button behavior =====
+      let modalUtterance = null;
+      let modalIsPaused = false;
+      const ttsToggleBtn = document.getElementById('ttsToggle');
+      const ttsRateInput = document.getElementById('ttsRate');
+
+      function setTtsToggleIcon(isPlaying){
+        const i = ttsToggleBtn?.querySelector('i');
+        if(!i) return;
+        if(isPlaying && !modalIsPaused) i.className = 'fa-solid fa-pause';
+        else i.className = 'fa-solid fa-play';
+      }
+      function resetModalTTS(){
+        if('speechSynthesis' in window) try{ speechSynthesis.cancel(); }catch(e){}
+        modalIsPaused = false;
+        setTtsToggleIcon(false);
+      }
+
+      ttsToggleBtn?.addEventListener('click', ()=>{
+        if(!('speechSynthesis' in window)){ showToast('Speech not supported'); return; }
+
+        if(!speechSynthesis.speaking && !modalIsPaused){
+          try{ speechSynthesis.cancel(); }catch(e){}
+          modalUtterance = null; modalIsPaused = false;
+          const textParts = [];
+          if(modalTitle.textContent) textParts.push(modalTitle.textContent.trim());
+          if(modalInfo.textContent) textParts.push(modalInfo.textContent.trim());
+          const text = textParts.join('. ').trim();
+          if(!text){ showToast('No text to read'); return; }
+
+          modalUtterance = new SpeechSynthesisUtterance(text);
+          modalUtterance.lang = "en-US";
+          modalUtterance.rate = parseFloat(ttsRateInput.value || 1);
+          modalUtterance.onend = () => { modalUtterance = null; modalIsPaused = false; setTtsToggleIcon(false); };
+          speechSynthesis.speak(modalUtterance);
+          setTtsToggleIcon(true);
+          modalIsPaused = false;
+        } else if(speechSynthesis.speaking && !modalIsPaused){
+          try{ speechSynthesis.pause(); }catch(e){}
+          modalIsPaused = true;
+          setTtsToggleIcon(false);
+        } else if(modalIsPaused){
+          try{ speechSynthesis.resume(); }catch(e){}
+          modalIsPaused = false;
+          setTtsToggleIcon(true);
+        } else {
+          resetModalTTS();
+        }
+      });
+
+      ttsRateInput?.addEventListener('input', ()=>{
+        if(modalUtterance) {
+          try{ modalUtterance.rate = parseFloat(ttsRateInput.value); }catch(e){}
+        }
+      });
+
+    // ===== POSITION CONTROLS (FAB & Panels) =====
+    const galleryPanelEl = document.getElementById('galleryPanel');
+    const guidePanelElRef = document.getElementById('guide-panel');
+    const fabGalleryEl = document.getElementById('galleryFab');
+    const fabKeyEl = document.getElementById('keyFab');
+    const fabGuide = document.getElementById('guideFab');
+    const fabTimeline = document.getElementById('timelineFab'); // ✅ timeline included
+    const miniCloseBtn = document.getElementById('galleryMiniClose');
+    const leafletZoomEl = document.querySelector('.leaflet-control-zoom');
+
+    function positionControls(){
+      const galleryOpen = galleryPanelEl.classList.contains('active');
+      const guideOpen = guidePanelElRef.classList.contains('active');
+      const base = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--base-gap')) || 16;
+      const galleryH = galleryOpen ? 180 : 0;
+
+      if (fabGalleryEl) fabGalleryEl.style.bottom = galleryOpen ? `${galleryH + base}px` : `${base}px`;
+// Key People FAB
+if (fabKeyEl) fabKeyEl.style.bottom = galleryOpen ? `${galleryH + base + 86}px` : `140px`;
+
+// Timeline FAB (stack above Key People instead of hardcoded 90px)
+if (fabTimeline) fabTimeline.style.bottom = galleryOpen ? `${galleryH + base + 86 + 68}px` : `200px`;
+
+if (guideOpen) {
+  guidePanelElRef.style.bottom = `${galleryH + base}px`;
+  const guideH = Math.round(guidePanelElRef.clientHeight || 0);
+  const fabBottom = galleryH + base + guideH + 12;
+
+  if (fabGuide) fabGuide.style.bottom = `${fabBottom}px`;
+  if (fabKeyEl) fabKeyEl.style.bottom = `${galleryH + base + 86}px`;           // Key above gallery
+  if (fabTimeline) fabTimeline.style.bottom = `${galleryH + base + 86 + 68}px`; // Timeline above Key
+  if (leafletZoomEl) leafletZoomEl.style.bottom = `${fabBottom + 66}px`;
+} else {
+  guidePanelElRef.style.bottom = '';
+  if (galleryOpen) {
+    const guideFabBottom = galleryH + base;
+    if (fabGuide) fabGuide.style.bottom = `${guideFabBottom}px`;
+    if (fabKeyEl) fabKeyEl.style.bottom = `${galleryH + base + 86}px`;
+    if (fabTimeline) fabTimeline.style.bottom = `${galleryH + base + 86 + 68}px`;
+    if (leafletZoomEl) leafletZoomEl.style.bottom = `${guideFabBottom + 66}px`;
+  } else {
+    if (fabGuide) fabGuide.style.bottom = `${base}px`;
+    if (fabKeyEl) fabKeyEl.style.bottom = `140px`;   // fallback
+    if (fabTimeline) fabTimeline.style.bottom = `200px`; // fallback
+    if (leafletZoomEl) leafletZoomEl.style.bottom = `86px`;
+  }
+}
+    }
+
+    window.addEventListener('resize', ()=> setTimeout(positionControls, 90));
+    ['galleryFab','galleryMiniClose','keyFab','guideFab','panelClose','galleryPrev','galleryNext']
+      .forEach(id=>{
+        const el = document.getElementById(id);
+        if(el) el.addEventListener('click', ()=> setTimeout(positionControls, 120));
+      });
+    setTimeout(positionControls, 320);
+
+    function cancelAllTTS(){ if('speechSynthesis' in window) try{ speechSynthesis.cancel(); }catch(e){} }
+    document.getElementById('galleryFab')?.addEventListener('click', ()=>cancelAllTTS());
+    document.getElementById('panelClose')?.addEventListener('click', ()=>cancelAllTTS());
+    document.getElementById('closeModal')?.addEventListener('click', ()=>cancelAllTTS());
+</script>
+</body>
+</html>
+
+
